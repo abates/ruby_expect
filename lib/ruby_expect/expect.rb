@@ -1,10 +1,11 @@
 require 'thread'
+require 'ruby_expect/procedure'
 
 module RubyExpect
   class Expect
     attr_reader :before, :match, :last_match, :buffer
 
-    def initialize io, options = {}
+    def initialize io, options = {}, &block
       if (io.is_a?(IO))
         @io = io
       else
@@ -19,6 +20,14 @@ module RubyExpect
       @match = ''
       @timeout = 0
       read_loop
+
+      unless (block.nil?)
+        procedure(&block)
+      end
+    end
+
+    def procedure &block
+      RubyExpect::Procedure.new(self, &block).run
     end
 
     def timeout= timeout
@@ -69,32 +78,21 @@ module RubyExpect
       @io.write("#{command}\n")
     end
 
-    def pattern_escape pattern
-      if (pattern.is_a?(String))
-        pattern = Regexp.new(Regexp.escape(pattern))
-      elsif (! pattern.is_a?(Regexp))
-        raise "Don't know how to match on a #{pattern.class}"
+    def pattern_escape *patterns
+      escaped_patterns = []
+      patterns.each do |pattern|
+        if (pattern.is_a?(String))
+          pattern = Regexp.new(Regexp.escape(pattern))
+        elsif (! pattern.is_a?(Regexp))
+          raise "Don't know how to match on a #{pattern.class}"
+        end
+        escaped_patterns.push(pattern)
       end
-      pattern
+      escaped_patterns
     end
 
-    def expect *match_patterns, &block
-      patterns = []
-
-      i = 0
-      if (match_patterns.size == 1)
-        patterns[0] = { :pattern => pattern_escape(match_patterns[0]), :process => nil, :index => 0 }
-      else
-        match_patterns.each do |pattern|
-          if (pattern.is_a?(Proc))
-            patterns.last[:proc] = pattern
-          else
-            pattern = pattern_escape(pattern)
-            patterns[i] = {:pattern => pattern, :proc => nil, :index => i }
-            i += 1
-          end
-        end
-      end
+    def expect *patterns, &block
+      patterns = pattern_escape(*patterns)
 
       @end_time = 0
       if (@timeout != 0)
@@ -102,25 +100,27 @@ module RubyExpect
       end
 
       @before = ''
+      matched_index = nil
       while (@end_time == 0 || Time.now < @end_time)
         return nil if (@io.closed?)
         @last_match = nil
         @buffer_sem.synchronize do
           patterns.each_index do |i|
-            if (match = patterns[i][:pattern].match(@buffer))
+            if (match = patterns[i].match(@buffer))
               @last_match = patterns[i]
               @before = @buffer.slice!(0...match.begin(0))
               @match = @buffer.slice!(0...match.to_s.length)
+              matched_index = i
               break
             end
           end
           @buffer_cv.wait(@buffer_sem) if (@last_match.nil?)
         end
         unless (@last_match.nil?)
-          if (@last_match[:proc].is_a?(Proc))
-            @last_match[:proc].call
+          unless (block.nil?)
+            instance_eval(&block)
           end
-          return @last_match[:index]
+          return matched_index
         end
       end
       return nil

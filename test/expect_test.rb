@@ -53,37 +53,10 @@ class ExpectTest < Test::Unit::TestCase
     s2 << "line2\n"
     s2 << "line3\n"
     proc_called = false
-    retval = exp.expect(
-      "line2\n", Proc.new do
-        proc_called = true
-      end
-
-    )
+    retval = exp.expect("line2\n") do
+      proc_called = true
+    end
 
     assert proc_called
-  end
-
-  test 'multiple callbacks' do
-    (s1, s2) = UNIXSocket.socketpair
-    exp = RubyExpect::Expect.new(s1)
-    s2 << "line1\n"
-    s2 << "line2\n"
-    s2 << "line3\n"
-
-    match1 = false
-    match2 = false
-    retval = exp.expect(
-      "line2\n", Proc.new { match1 = true }, 
-      "line3\n", Proc.new { match2 = true }
-    )
-    assert_equal 0, retval
-    retval = exp.expect(
-      "line2\n", Proc.new { match1 = true }, 
-      "line3\n", Proc.new { match2 = true }
-    )
-    assert_equal 1, retval
-
-    assert match1
-    assert match2
   end
 end
