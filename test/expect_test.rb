@@ -33,26 +33,13 @@ class ExpectTest < Test::Unit::TestCase
     assert_equal "line2\n", exp.match
   end
 
-  test 'after expect buffer contains remaining input data' do
-    (s1, s2) = UNIXSocket.socketpair
-    exp = RubyExpect::Expect.new(s1)
-    s2 << "line1\n"
-    s2 << "line2\n"
-    s2 << "line3\n"
-    s2.flush
-    sleep(1) # make sure read loop has consumed everything
-    retval = exp.expect("line2\n")
-    assert_equal "line3\n", exp.buffer
-  end
-
   test 'multiple patterns return first match' do
     (s1, s2) = UNIXSocket.socketpair
     exp = RubyExpect::Expect.new(s1)
     s2 << "line1\n"
     s2 << "line2\n"
     s2 << "line3\n"
-    s2.flush
-    sleep(1) # make sure read loop has consumed everything
+
     retval = exp.expect("line2\n", "line3\n")
     assert_equal 0, retval
     retval = exp.expect("line2\n", "line3\n")
@@ -67,9 +54,10 @@ class ExpectTest < Test::Unit::TestCase
     s2 << "line3\n"
     proc_called = false
     retval = exp.expect(
-      "line2\n" => Proc.new do
+      "line2\n", Proc.new do
         proc_called = true
       end
+
     )
 
     assert proc_called
@@ -81,18 +69,17 @@ class ExpectTest < Test::Unit::TestCase
     s2 << "line1\n"
     s2 << "line2\n"
     s2 << "line3\n"
-    s2.flush
-    sleep(1) # make sure read loop has consumed everything
+
     match1 = false
     match2 = false
     retval = exp.expect(
-      "line2\n" => Proc.new { match1 = true }, 
-      "line3\n" => Proc.new { match2 = true }
+      "line2\n", Proc.new { match1 = true }, 
+      "line3\n", Proc.new { match2 = true }
     )
     assert_equal 0, retval
     retval = exp.expect(
-      "line2\n" => Proc.new { match1 = true }, 
-      "line3\n" => Proc.new { match2 = true }
+      "line2\n", Proc.new { match1 = true }, 
+      "line3\n", Proc.new { match2 = true }
     )
     assert_equal 1, retval
 

@@ -2,7 +2,7 @@ require 'thread'
 
 module RubyExpect
   class Expect
-    attr_reader :before, :match, :buffer
+    attr_reader :before, :match, :last_match, :buffer
 
     def initialize io, options = {}
       if (io.is_a?(IO))
@@ -79,25 +79,19 @@ module RubyExpect
     end
 
     def expect *match_patterns, &block
-      patterns = {}
-      if (match_patterns.last.is_a?(Hash))
-        hash = match_patterns.pop
-        match_patterns.push(*hash.to_a.flatten)
-      end
+      patterns = []
 
-      last_pattern = ''
+      i = 0
       if (match_patterns.size == 1)
-        patterns[pattern_escape(match_patterns[0])] = { :process => 1, :index => 0 }
+        patterns[0] = { :pattern => pattern_escape(match_patterns[0]), :process => nil, :index => 0 }
       else
-        index = 0
         match_patterns.each do |pattern|
           if (pattern.is_a?(Proc))
-            patterns[last_pattern][:proc] = pattern
+            patterns.last[:proc] = pattern
           else
             pattern = pattern_escape(pattern)
-            patterns[pattern] = {:proc => nil, :index => index }
-            index += 1
-            last_pattern = pattern
+            patterns[i] = {:pattern => pattern, :proc => nil, :index => i }
+            i += 1
           end
         end
       end
@@ -110,18 +104,23 @@ module RubyExpect
       @before = ''
       while (@end_time == 0 || Time.now < @end_time)
         return nil if (@io.closed?)
+        @last_match = nil
         @buffer_sem.synchronize do
-          patterns.each do |pattern, p|
-            if (match = pattern.match(@buffer))
+          patterns.each_index do |i|
+            if (match = patterns[i][:pattern].match(@buffer))
+              @last_match = patterns[i]
               @before = @buffer.slice!(0...match.begin(0))
               @match = @buffer.slice!(0...match.to_s.length)
-              if (p[:proc].is_a?(Proc))
-                p[:proc].call
-              end
-              return p[:index]
+              break
             end
           end
-          @buffer_cv.wait(@buffer_sem)
+          @buffer_cv.wait(@buffer_sem) if (@last_match.nil?)
+        end
+        unless (@last_match.nil?)
+          if (@last_match[:proc].is_a?(Proc))
+            @last_match[:proc].call
+          end
+          return @last_match[:index]
         end
       end
       return nil
