@@ -21,33 +21,33 @@ require 'ruby_expect/procedure'
 #
 module RubyExpect
   #####
+  # This is the main class used to interact with IO objects An Expect object can
+  # be used to send and receive data on any read/write IO object.
   #
-  # This is the main class used to interact with IO objects
-  # An Expect object can be used to send and receive data on
-  # any read/write IO object.
   class Expect
-    #     +before+:: Any data that was in the accumulator buffer before match in the last expect call
-    #                if the last call to expect resulted in a timeout, then before is an empty string
-    #
-    #      +match+:: The exact string that matched in the last expect call
-    # 
-    # +last_match+:: The MatchData object from the last expect call or nil upon a timeout
-    #
-    #     +buffer+:: The accumulator buffer populated by read_loop.  Only access this if you really
-    #                know what you are doing!
-    #
-    attr_reader :before, :match, :last_match, :buffer
+    # Any data that was in the accumulator buffer before match in the last expect call
+    # if the last call to expect resulted in a timeout, then before is an empty string
+    attr_reader :before
+
+    # The exact string that matched in the last expect call
+    attr_reader :match
+
+    # The MatchData object from the last expect call or nil upon a timeout
+    attr_reader :last_match
+
+    # The accumulator buffer populated by read_loop.  Only access this if you really
+    # know what you are doing!
+    attr_reader :buffer
 
     #####
     # Create a new Expect object for the given IO object
     #
-    #      +io+:: The IO object with which to interact
+    # +io+:: The IO object with which to interact
     #
-    # +options+:: Currently the only option supported is :debug
-    #             If :debug is true then the interaction will be
-    #             displayed on STDOUT
+    # +options+:: Currently the only option supported is :debug If :debug is
+    # true then the interaction will be displayed on STDOUT
     #
-    #  +&block+:: An optional block called upon initialization.  See procedure
+    # +&block+:: An optional block called upon initialization.  See procedure
     #
     def initialize io, options = {}, &block
       if (io.is_a?(IO))
@@ -75,22 +75,23 @@ module RubyExpect
     # Perform a series of 'expects' using the DSL defined in Procedure
     #
     # +&block+:: The block will be called in the context of a new Procedure
-    #            object
+    # object
     #
     # == Example
-    # 
-    # exp = Expect.new(io)
-    # exp.procedure do
-    #  each do
-    #    expect /first expected line/ do
-    #      send "some text to send"
+    #
+    #    exp = Expect.new(io)
+    #    exp.procedure do
+    #     each do
+    #       expect /first expected line/ do
+    #         send "some text to send"
+    #       end
+    #
+    #       expect /second expected line/ do
+    #         send "some more text to send"
+    #       end
+    #     end
     #    end
     #
-    #    expect /second expected line/ do
-    #      send "some more text to send"
-    #    end
-    #  end
-    # end
     def procedure &block
       RubyExpect::Procedure.new(self, &block).run
     end
@@ -98,8 +99,8 @@ module RubyExpect
     #####
     # Set the time to wait for an expected pattern
     #
-    # +timeout+:: number of seconds to wait before giving up.  A value of zero means
-    #             wait forever
+    # +timeout+:: number of seconds to wait before giving up.  A value of zero
+    # means wait forever
     #
     def timeout= timeout
       unless (timeout.is_a?(Integer))
@@ -114,8 +115,8 @@ module RubyExpect
     end
 
     #####
-    # Convenience method that will send a string followed by a newline
-    # to the write handle of the IO object
+    # Convenience method that will send a string followed by a newline to the
+    # write handle of the IO object
     #
     # +command+:: String to send down the pipe
     #
@@ -124,25 +125,25 @@ module RubyExpect
     end
 
     #####
-    # Wait until either the timeout occurs or one of the given patterns
-    # is seen in the input.  Upon a match, the property before is assigned
-    # all input in the accumulator before the match, the matched string itself
-    # is assigned to the match property and an optional block is called
+    # Wait until either the timeout occurs or one of the given patterns is seen
+    # in the input.  Upon a match, the property before is assigned all input in
+    # the accumulator before the match, the matched string itself is assigned to
+    # the match property and an optional block is called
     #
-    # The method will return the index of the matched pattern or nil if no
-    # match has occurred during the timeout period
+    # The method will return the index of the matched pattern or nil if no match
+    # has occurred during the timeout period
     #
     # +*patterns+:: list of patterns to look for.  These can be either literal
-    #               strings or Regexp objects
+    # strings or Regexp objects
     #
-    #    +&block+:: An optional block to be called if one of the patterns matches
+    # +&block+:: An optional block to be called if one of the patterns matches
     #
     # == Example
     #
-    # exp = Expect.new(io)
-    # exp.expect('Password:') do
-    #   send("12345")
-    # end 
+    #    exp = Expect.new(io)
+    #    exp.expect('Password:') do
+    #      send("12345")
+    #    end 
     #
     def expect *patterns, &block
       patterns = pattern_escape(*patterns)
@@ -181,8 +182,8 @@ module RubyExpect
 
     private
       #####
-      # This method will convert any strings in the argument list to
-      # regular expressions that search for the literal string
+      # This method will convert any strings in the argument list to regular
+      # expressions that search for the literal string
       #
       # +*patterns+:: List of patterns to escape
       #
@@ -200,10 +201,9 @@ module RubyExpect
       end
 
       #####
-      #
-      # The read loop is an internal method that constantly waits for
-      # input to arrive on the IO object.  When input arrives it is
-      # appended to an internal buffer for use by the expect method
+      # The read loop is an internal method that constantly waits for input to
+      # arrive on the IO object.  When input arrives it is appended to an
+      # internal buffer for use by the expect method
       #
       def read_loop
         Thread.abort_on_exception = true
