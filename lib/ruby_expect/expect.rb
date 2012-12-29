@@ -42,12 +42,15 @@ module RubyExpect
     #####
     # Create a new Expect object for the given IO object
     #
-    # +io+:: The IO object with which to interact
+    # +io+::
+    #   The IO object with which to interact
     #
-    # +options+:: Currently the only option supported is :debug If :debug is
-    # true then the interaction will be displayed on STDOUT
+    # +options+::
+    #   Currently the only option supported is :debug If :debug is true then the
+    #   interaction will be displayed on STDOUT
     #
-    # +&block+:: An optional block called upon initialization.  See procedure
+    # +block+::
+    #   An optional block called upon initialization.  See procedure
     #
     def initialize io, options = {}, &block
       if (io.is_a?(IO))
@@ -74,8 +77,8 @@ module RubyExpect
     #####
     # Perform a series of 'expects' using the DSL defined in Procedure
     #
-    # +&block+:: The block will be called in the context of a new Procedure
-    # object
+    # +block+::
+    #   The block will be called in the context of a new Procedure object
     #
     # == Example
     #
@@ -99,8 +102,9 @@ module RubyExpect
     #####
     # Set the time to wait for an expected pattern
     #
-    # +timeout+:: number of seconds to wait before giving up.  A value of zero
-    # means wait forever
+    # +timeout+::
+    #   number of seconds to wait before giving up.  A value of zero means wait
+    #   forever
     #
     def timeout= timeout
       unless (timeout.is_a?(Integer))
@@ -118,7 +122,8 @@ module RubyExpect
     # Convenience method that will send a string followed by a newline to the
     # write handle of the IO object
     #
-    # +command+:: String to send down the pipe
+    # +command+::
+    #   String to send down the pipe
     #
     def send command
       @io.write("#{command}\n")
@@ -133,10 +138,12 @@ module RubyExpect
     # The method will return the index of the matched pattern or nil if no match
     # has occurred during the timeout period
     #
-    # +*patterns+:: list of patterns to look for.  These can be either literal
-    # strings or Regexp objects
+    # +patterns+::
+    #   list of patterns to look for.  These can be either literal strings or
+    #   Regexp objects
     #
-    # +&block+:: An optional block to be called if one of the patterns matches
+    # +block+::
+    #   An optional block to be called if one of the patterns matches
     #
     # == Example
     #
@@ -185,7 +192,8 @@ module RubyExpect
       # This method will convert any strings in the argument list to regular
       # expressions that search for the literal string
       #
-      # +*patterns+:: List of patterns to escape
+      # +patterns+::
+      #   List of patterns to escape
       #
       def pattern_escape *patterns
         escaped_patterns = []
