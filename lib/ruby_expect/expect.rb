@@ -42,22 +42,49 @@ module RubyExpect
     #####
     # Create a new Expect object for the given IO object
     #
-    # +io+::
-    #   The IO object with which to interact
+    # There are two ways to create a new Expect object.  The first
+    # is to supply a single IO object with a read/write mode.  The second
+    # method is to supply a read file handle as the first argument and a 
+    # write file handle as the second argument.
     #
-    # +options+::
-    #   Currently the only option supported is :debug If :debug is true then the
-    #   interaction will be displayed on STDOUT
+    # +args+::
+    #   at most 3 arguments, 1 or 2 IO objects (read/write or read + write and an optional
+    #   options hash.  The only currently supported option is :debug (default false) which,
+    #   if enabled, will send data received on the input filehandle to STDOUT
     #
     # +block+::
     #   An optional block called upon initialization.  See procedure
     #
-    def initialize io, options = {}, &block
-      if (io.is_a?(IO))
-        @io = io
-      else
-        raise "Argument to initialize must be an IO object"
+    # == Examples
+    #   # expect with a read/write filehandle
+    #   exp = Expect.new(rwfh)
+    #
+    #   # expect with separate read and write filehandles
+    #   exp = Expect.new(rfh, wfh)
+    #
+    #   # turning on debugging
+    #   exp = Expect.new(rfh, wfh, :debug => true)
+    #
+    def initialize *args, &block
+      options = {}
+      if (args.last.is_a?(Hash))
+        options = args.pop
       end
+
+      raise ArgumentError("First argument must be an IO object") unless (args[0].is_a?(IO))
+      if (args.size == 1)
+        @write_fh = args.shift
+        @read_fh = @write_fh
+      elsif (args.size == 2)
+        raise ArgumentError("Second argument must be an IO object") unless (args[1].is_a?(IO))
+        @write_fh = args.shift
+        @read_fh = args.shift
+      else
+        raise ArgumentError.new("either specify a read/write IO object, or a read IO object and a write IO object")
+      end
+      
+      raise "Input file handle is not readable!" unless (@read_fh.stat.readable?)
+      raise "Output file handle is not writable!" unless (@write_fh.stat.writable?)
 
       @buffer_sem = Mutex.new
       @buffer_cv = ConditionVariable.new
@@ -96,7 +123,7 @@ module RubyExpect
     #    end
     #
     def procedure &block
-      RubyExpect::Procedure.new(self, &block).run
+      RubyExpect::Procedure.new(self, &block)
     end
 
     #####
@@ -126,7 +153,7 @@ module RubyExpect
     #   String to send down the pipe
     #
     def send command
-      @io.write("#{command}\n")
+      @write_fh.write("#{command}\n")
     end
 
     #####
@@ -154,7 +181,6 @@ module RubyExpect
     #
     def expect *patterns, &block
       patterns = pattern_escape(*patterns)
-
       @end_time = 0
       if (@timeout != 0)
         @end_time = Time.now + @timeout
@@ -163,7 +189,7 @@ module RubyExpect
       @before = ''
       matched_index = nil
       while (@end_time == 0 || Time.now < @end_time)
-        return nil if (@io.closed?)
+        return nil if (@read_fh.closed?)
         @last_match = nil
         @buffer_sem.synchronize do
           patterns.each_index do |i|
@@ -218,11 +244,11 @@ module RubyExpect
         Thread.new do
           while (true)
             begin
-              ready = IO.select([@io], nil, nil, 1)
+              ready = IO.select([@read_fh], nil, nil, 1)
               if (ready.nil? || ready.size == 0)
                 @buffer_cv.signal()
               else
-                input = @io.readpartial(4096)
+                input = @read_fh.readpartial(4096)
                 @buffer_sem.synchronize do
                   @buffer << input
                   @buffer_cv.signal()
