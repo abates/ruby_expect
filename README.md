@@ -55,3 +55,53 @@ parsed and printed to the screen.
       end
     end
 
+### Interact with a local script
+This example runs a script and interacts with it
+    #!/usr/bin/ruby
+    
+    require 'ruby_expect'
+    
+    root_password = 'root_password'
+    new_root_password = 'new_password'
+    
+    exp = RubyExpect::Expect.spawn('mysql_secure_installation', :debug => true)
+    
+    exp.procedure do
+      each do
+        expect "Enter current password for root (enter for none):" do
+          send root_password
+        end
+    
+        expect "Change the root password? [Y/n]" do
+          send "y"
+        end
+    
+        expect "New password:" do
+          send new_root_password
+        end
+    
+        expect "Re-enter new password:" do
+          send new_root_password
+        end
+    
+        expect "Remove anonymous users?" do
+          send "y"
+        end
+    
+        expect "Disallow root login remotely?" do
+          send "y"
+        end
+    
+        expect "Remove test database and access to it?" do
+          send "y"
+        end
+    
+        expect "Reload privilege tables now?" do
+          send "y"
+        end
+      end
+    end
+    
+    puts "Ended expect script."
+
+
