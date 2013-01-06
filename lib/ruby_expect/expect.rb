@@ -114,9 +114,9 @@ module RubyExpect
     # +block+::
     #   Optional block to call and run a procedure in
     #
-    def self.spawn command, &block
+    def self.spawn command, options = {}, &block
       shell_in, shell_out = PTY.spawn(command)
-      return RubyExpect::Expect.new(shell_out, shell_in, &block)
+      return RubyExpect::Expect.new(shell_out, shell_in, options, &block)
     end
 
     #####
