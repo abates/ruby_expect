@@ -103,7 +103,7 @@ module RubyExpect
   end
 
   #####
-  # A proedure is a set of patterns to match and blocks to be called upon
+  # A procedure is a set of patterns to match and blocks to be called upon
   # matching patterns.  This is useful for building blocks of expected sequences
   # of input data.  An example of this could be logging into a system using SSH
   #
@@ -139,9 +139,13 @@ module RubyExpect
   #
   class Procedure
     #####
+    # Create a new procedure to be executed by the expect object
+    #
     # +exp_object+::
+    #   The expect object that will execute this procedure
     #
     # +block+::
+    #   The block to be called that defined the procedure
     #
     def initialize exp_object, &block
       raise "First argument must be a RubyExpect::Expect object" unless (exp_object.is_a?(RubyExpect::Expect))
@@ -155,7 +159,6 @@ module RubyExpect
     # new AnyMatch instance
     #
     # +block+::
-    #
     #   The block the specifies the patterns to expect
     #
     def any &block
