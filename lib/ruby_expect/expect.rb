@@ -42,20 +42,22 @@ module RubyExpect
     #####
     # Create a new Expect object for the given IO object
     #
-    # There are two ways to create a new Expect object.  The first
-    # is to supply a single IO object with a read/write mode.  The second
-    # method is to supply a read file handle as the first argument and a 
-    # write file handle as the second argument.
+    # There are two ways to create a new Expect object.  The first is to supply
+    # a single IO object with a read/write mode.  The second method is to supply
+    # a read file handle as the first argument and a write file handle as the
+    # second argument.
     #
     # +args+::
-    #   at most 3 arguments, 1 or 2 IO objects (read/write or read + write and an optional
-    #   options hash.  The only currently supported option is :debug (default false) which,
-    #   if enabled, will send data received on the input filehandle to STDOUT
+    #   at most 3 arguments, 1 or 2 IO objects (read/write or read + write and
+    #   an optional options hash.  The only currently supported option is :debug
+    #   (default false) which, if enabled, will send data received on the input
+    #   filehandle to STDOUT
     #
     # +block+::
     #   An optional block called upon initialization.  See procedure
     #
     # == Examples
+    #
     #   # expect with a read/write filehandle
     #   exp = Expect.new(rwfh)
     #

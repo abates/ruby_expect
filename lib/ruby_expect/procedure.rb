@@ -14,11 +14,14 @@
 # the License.
 #
 
+#####
+#
+#
 module RubyExpect
   #####
-  # A pattern is a simple container to hold a string/regexp pattern and
-  # proc to be called upon match.  This is an internal container used by
-  # the Procedure class
+  # A pattern is a simple container to hold a string/regexp pattern and proc to
+  # be called upon match.  This is an internal container used by the Procedure
+  # class
   #
   class Pattern
     attr_reader :pattern, :block
@@ -44,8 +47,8 @@ module RubyExpect
     #   The expect object used for interaction
     #
     # +block+::
-    #   The block will be called in the context of the initialized
-    #   match object
+    #   The block will be called in the context of the initialized match object
+    #
     def initialize exp_object, &block
       @exp = exp_object
       @patterns = []
@@ -101,11 +104,11 @@ module RubyExpect
 
   #####
   # A proedure is a set of patterns to match and blocks to be called upon
-  # matching patterns.  This is useful for building blocks of expected
-  # sequences of input data.  An example of this could be logging into
-  # a system using SSH
+  # matching patterns.  This is useful for building blocks of expected sequences
+  # of input data.  An example of this could be logging into a system using SSH
   #
   # == Example
+  #
   #  retval = 0
   #  while (retval != 2)
   #    retval = any do
@@ -148,7 +151,8 @@ module RubyExpect
     end
 
     #####
-    # Add an 'any' block to the Procedure.  The block will be evaluated using a new AnyMatch instance
+    # Add an 'any' block to the Procedure.  The block will be evaluated using a
+    # new AnyMatch instance
     #
     # +block+::
     #
@@ -159,7 +163,8 @@ module RubyExpect
     end
 
     #####
-    # Add an 'each' block to the Procedure.  The block will be evaluated using a new EachMatch instance
+    # Add an 'each' block to the Procedure.  The block will be evaluated using a
+    # new EachMatch instance
     #
     # +block+::
     #   The block that specifies the patterns to expect
