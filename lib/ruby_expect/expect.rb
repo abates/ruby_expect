@@ -13,8 +13,10 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 #
+
 require 'thread'
 require 'ruby_expect/procedure'
+require 'pty'
 
 #####
 #
@@ -101,6 +103,20 @@ module RubyExpect
       unless (block.nil?)
         procedure(&block)
       end
+    end
+
+    #####
+    # Spawn a command and interact with it
+    #
+    # +command+::
+    #   The command to execute
+    #
+    # +block+::
+    #   Optional block to call and run a procedure in
+    #
+    def self.spawn command, &block
+      shell_in, shell_out = PTY.spawn(command)
+      return RubyExpect::Expect.new(shell_out, shell_in, &block)
     end
 
     #####
