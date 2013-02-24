@@ -119,6 +119,27 @@ module RubyExpect
       return RubyExpect::Expect.new(shell_out, shell_in, options, &block)
     end
 
+    
+    #####
+    # Connect to a socket
+    #
+    # +command+::
+    #   The socket or file to connect to
+    #
+    # +block+::
+    #   Optional block to call and run a procedure in
+    #
+    def self.connect socket, options = {}, &block
+      require 'socket'
+      client = nil
+      if (socket.is_a?(UNIXSocket))
+       client = socket
+      else
+       client = UNIXSocket.new(socket)
+      end
+      return RubyExpect::Expect.new(client, options, &block)
+    end
+
     #####
     # Perform a series of 'expects' using the DSL defined in Procedure
     #
@@ -231,6 +252,15 @@ module RubyExpect
       return nil
     end
 
+    def soft_close
+      while (! @read_fh.closed?)
+        @buffer_sem.synchronize do
+          @buffer_cv.wait(@buffer_sem)
+        end
+      end
+      @write_fh.close unless (@write_fh.closed?)
+    end
+
     private
       #####
       # This method will convert any strings in the argument list to regular
@@ -266,14 +296,20 @@ module RubyExpect
               if (ready.nil? || ready.size == 0)
                 @buffer_cv.signal()
               else
-                input = @read_fh.readpartial(4096)
-                @buffer_sem.synchronize do
-                  @buffer << input
+                if (@read_fh.eof?)
+                  @read_fh.close
                   @buffer_cv.signal()
-                end
-                if (@debug)
-                  STDERR.print input
-                  STDERR.flush
+                  break
+                else
+                  input = @read_fh.readpartial(4096)
+                  @buffer_sem.synchronize do
+                    @buffer << input
+                    @buffer_cv.signal()
+                  end
+                  if (@debug)
+                    STDERR.print input
+                    STDERR.flush
+                  end
                 end
               end
             rescue EOFError => e

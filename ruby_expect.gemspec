@@ -6,6 +6,6 @@ Gem::Specification.new do |s|
   s.description = 'Ruby implementation for send/expect interaction'
   s.authors     = ['Andrew Bates']
   s.email       = 'abates@omeganetserv.com'
-  s.files       = []
+  s.files       = `git ls-files lib`.split("\n")
   s.homepage    = 'https://github.com/abates/RubyExpect'
 end
