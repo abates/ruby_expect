@@ -184,6 +184,13 @@ module RubyExpect
       @end_time = 0
     end
 
+    ####
+    # Get the current timeout value
+    #
+    def timeout
+      @timeout
+    end
+
     #####
     # Convenience method that will send a string followed by a newline to the
     # write handle of the IO object
