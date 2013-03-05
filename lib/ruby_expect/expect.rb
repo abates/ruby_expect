@@ -92,6 +92,7 @@ module RubyExpect
 
       @buffer_sem = Mutex.new
       @buffer_cv = ConditionVariable.new
+      @child_pid = options[:child_pid]
       @debug = options[:debug] || false
       @buffer = ''
       @before = ''
@@ -115,7 +116,8 @@ module RubyExpect
     #   Optional block to call and run a procedure in
     #
     def self.spawn command, options = {}, &block
-      shell_in, shell_out = PTY.spawn(command)
+      shell_in, shell_out, pid = PTY.spawn(command)
+      options[:child_pid] = pid
       return RubyExpect::Expect.new(shell_out, shell_in, options, &block)
     end
 
@@ -265,7 +267,11 @@ module RubyExpect
           @buffer_cv.wait(@buffer_sem)
         end
       end
+      @read_fh.close unless (@read_fh.closed?)
       @write_fh.close unless (@write_fh.closed?)
+      if (@child_pid)
+        Process.wait(@child_pid)
+      end
     end
 
     private
@@ -322,9 +328,9 @@ module RubyExpect
             rescue EOFError => e
             rescue Exception => e
               unless (e.to_s == 'stream closed')
-                STDERR.print "#{e}\n"
-                STDERR.print "\t#{e.backtrace.join("\n\t")}\n"
-                STDERR.flush
+                STDERR.puts "Exception in read_loop:"
+                STDERR.puts "#{e}"
+                STDERR.puts "\t#{e.backtrace.join("\n\t")}"
               end
               break
             end

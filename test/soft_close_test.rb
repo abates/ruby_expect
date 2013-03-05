@@ -21,7 +21,7 @@ require 'socket'
 #
 #
 class SoftCloseTest < Test::Unit::TestCase
-  test 'exiting from remote process will cause process to wait until remote end is closed' do
+  def start_server
     socket_file = 'ruby_expect_soft_close_test.sock'
     File.unlink(socket_file) if (File.exists?(socket_file))
 
@@ -47,7 +47,11 @@ class SoftCloseTest < Test::Unit::TestCase
         socket.close
       end
     end
+    return socket_file
+  end
 
+  test 'exiting from remote process will cause process to wait until remote end is closed' do
+    socket_file = start_server
     exp = RubyExpect::Expect.connect(socket_file)
 
     exp.send("list")
@@ -65,5 +69,13 @@ class SoftCloseTest < Test::Unit::TestCase
     buffer = exp.buffer
     File.unlink(socket_file) if (File.exists?(socket_file))
     assert buffer =~ /Exiting$/, "Did not see end of buffer"
+  end
+
+  test 'pty - exited behavior with spawned process' do
+    exp = RubyExpect::Expect.spawn('sleep 2')
+    exp.soft_close
+    assert_nothing_raised do
+      `ls`
+    end
   end
 end
