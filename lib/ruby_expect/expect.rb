@@ -264,7 +264,7 @@ module RubyExpect
     # the spawned process or connected filehandle/socket is closed
     #
     def soft_close
-      while (! @read_fh.eof?)
+      while (! @read_fh.closed?)
         read_proc
       end
       @read_fh.close unless (@read_fh.closed?)
@@ -294,12 +294,16 @@ module RubyExpect
             end
           end
         rescue EOFError => e
+        rescue Errno::EIO => e
+          @read_fh.close
+          return false
         rescue Exception => e
           unless (e.to_s == 'stream closed')
             STDERR.puts "Exception in read_loop:"
             STDERR.puts "#{e}"
             STDERR.puts "\t#{e.backtrace.join("\n\t")}"
           end
+          @read_fh.close
           return false
         end
         return true
