@@ -255,6 +255,11 @@ module RubyExpect
       return nil
     end
 
+    #####
+    # Wait for the process to complete or the read handle to be closed
+    # and then clean everything up.  This method call will block until
+    # the spawned process or connected filehandle/socket is closed
+    #
     def soft_close
       while (! @read_fh.eof?)
         read_proc
