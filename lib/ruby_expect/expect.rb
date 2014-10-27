@@ -41,6 +41,9 @@ module RubyExpect
     # know what you are doing!
     attr_reader :buffer
 
+    # Set debug in order to see the output being read from the spawned process
+    attr_accessor :debug
+
     #####
     # Create a new Expect object for the given IO object
     #
