@@ -73,9 +73,16 @@ class SoftCloseTest < Test::Unit::TestCase
 
   test 'pty - exited behavior with spawned process' do
     exp = RubyExpect::Expect.spawn('sleep 2')
-    exp.soft_close
+    retval = exp.soft_close
+    assert_equal 0, retval.exitstatus
     assert_nothing_raised do
       `ls`
     end
+  end
+
+  test 'soft close returns correct process status' do
+    exp = RubyExpect::Expect.spawn('ls foo')
+    retval = exp.soft_close
+    assert_equal 1, retval.exitstatus
   end
 end

@@ -271,7 +271,9 @@ module RubyExpect
       @write_fh.close unless (@write_fh.closed?)
       if (@child_pid)
         Process.wait(@child_pid)
+        return $?
       end
+      return true
     end
 
     private
