@@ -90,16 +90,12 @@ module RubyExpect
       raise "Input file handle is not readable!" unless (@read_fh.stat.readable?)
       raise "Output file handle is not writable!" unless (@write_fh.stat.writable?)
 
-      @buffer_sem = Mutex.new
-      @buffer_cv = ConditionVariable.new
       @child_pid = options[:child_pid]
       @debug = options[:debug] || false
       @buffer = ''
       @before = ''
       @match = ''
       @timeout = 0
-
-      read_loop # start the read thread
 
       unless (block.nil?)
         procedure(&block)
@@ -238,18 +234,16 @@ module RubyExpect
       matched_index = nil
       while (@end_time == 0 || Time.now < @end_time)
         return nil if (@read_fh.closed?)
+        break unless (read_proc)
         @last_match = nil
-        @buffer_sem.synchronize do
-          patterns.each_index do |i|
-            if (match = patterns[i].match(@buffer))
-              @last_match = match
-              @before = @buffer.slice!(0...match.begin(0))
-              @match = @buffer.slice!(0...match.to_s.length)
-              matched_index = i
-              break
-            end
+        patterns.each_index do |i|
+          if (match = patterns[i].match(@buffer))
+            @last_match = match
+            @before = @buffer.slice!(0...match.begin(0))
+            @match = @buffer.slice!(0...match.to_s.length)
+            matched_index = i
+            break
           end
-          @buffer_cv.wait(@buffer_sem) if (@last_match.nil?)
         end
         unless (@last_match.nil?)
           unless (block.nil?)
@@ -262,10 +256,8 @@ module RubyExpect
     end
 
     def soft_close
-      while (! @read_fh.closed?)
-        @buffer_sem.synchronize do
-          @buffer_cv.wait(@buffer_sem)
-        end
+      while (! @read_fh.eof?)
+        read_proc
       end
       @read_fh.close unless (@read_fh.closed?)
       @write_fh.close unless (@write_fh.closed?)
@@ -275,6 +267,34 @@ module RubyExpect
     end
 
     private
+      def read_proc
+        begin
+          ready = IO.select([@read_fh], nil, nil, 1)
+          unless (ready.nil? || ready.size == 0)
+            if (@read_fh.eof?)
+              @read_fh.close
+              return false
+            else
+              input = @read_fh.readpartial(4096)
+              @buffer << input
+              if (@debug)
+                STDERR.print input
+                STDERR.flush
+              end
+            end
+          end
+        rescue EOFError => e
+        rescue Exception => e
+          unless (e.to_s == 'stream closed')
+            STDERR.puts "Exception in read_loop:"
+            STDERR.puts "#{e}"
+            STDERR.puts "\t#{e.backtrace.join("\n\t")}"
+          end
+          return false
+        end
+        return true
+      end
+
       #####
       # This method will convert any strings in the argument list to regular
       # expressions that search for the literal string
@@ -293,49 +313,6 @@ module RubyExpect
           escaped_patterns.push(pattern)
         end
         escaped_patterns
-      end
-
-      #####
-      # The read loop is an internal method that constantly waits for input to
-      # arrive on the IO object.  When input arrives it is appended to an
-      # internal buffer for use by the expect method
-      #
-      def read_loop
-        Thread.abort_on_exception = true
-        Thread.new do
-          while (true)
-            begin
-              ready = IO.select([@read_fh], nil, nil, 1)
-              if (ready.nil? || ready.size == 0)
-                @buffer_cv.signal()
-              else
-                if (@read_fh.eof?)
-                  @read_fh.close
-                  @buffer_cv.signal()
-                  break
-                else
-                  input = @read_fh.readpartial(4096)
-                  @buffer_sem.synchronize do
-                    @buffer << input
-                    @buffer_cv.signal()
-                  end
-                  if (@debug)
-                    STDERR.print input
-                    STDERR.flush
-                  end
-                end
-              end
-            rescue EOFError => e
-            rescue Exception => e
-              unless (e.to_s == 'stream closed')
-                STDERR.puts "Exception in read_loop:"
-                STDERR.puts "#{e}"
-                STDERR.puts "\t#{e.backtrace.join("\n\t")}"
-              end
-              break
-            end
-          end
-        end
       end
   end
 end
