@@ -279,23 +279,14 @@ module RubyExpect
 
     def interact
       done = false
-      line = ""
-      filter = ""
       while (! done)
-        avail = IO.select([@read_fh, STDIN])
+        avail = IO.select([@read_fh, $stdin])
         avail[0].each do |fh|
-          if (fh == STDIN)
-            if (STDIN.eof?)
+          if (fh == $stdin)
+            if ($stdin.eof?)
               done = true
             else
-              c = STDIN.read_nonblock(1)
-              if (c.ord == 12)
-                filter = line
-                line = ""
-              else
-                line += c
-              end
-
+              c = $stdin.read_nonblock(1)
               @write_fh.write(c)
               @write_fh.flush
             end
@@ -303,8 +294,8 @@ module RubyExpect
             if (@read_fh.eof?)
               done = true
             else
-              STDOUT.write(@read_fh.read_nonblock(1024))
-              STDOUT.flush
+              $stdout.write(@read_fh.read_nonblock(1024))
+              $stdout.flush
             end
           end
         end
