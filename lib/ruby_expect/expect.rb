@@ -277,6 +277,17 @@ module RubyExpect
       return true
     end
 
+    ###
+    # Provides the ability to hand control back to the user and
+    # allow them to interact with the spawned process. NOTE: this
+    # does not implement a correct termincal emulator so some things
+    # may not work as expected.  For instance, if you are connecting
+    # to a remote shell, each comman that is typed will be echoed 
+    # as the first line of the response (at least Bash does this).
+    # To prevent the echo, something like "stty -echo" needs to be
+    # sent to the remote system.  Also, it would seem that things like
+    # arrows and screen size don't work.
+    #
     def interact
       done = false
       while (! done)
