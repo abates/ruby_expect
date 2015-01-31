@@ -17,6 +17,7 @@
 require 'thread'
 require 'ruby_expect/procedure'
 require 'pty'
+require 'io/console'
 
 #####
 #
@@ -274,6 +275,42 @@ module RubyExpect
         return $?
       end
       return true
+    end
+
+    ###
+    # Provides the ability to hand control back to the user and
+    # allow them to interact with the spawned process. NOTE: this
+    # does not implement a correct termincal emulator so some things
+    # may not work as expected.  For instance, if you are connecting
+    # to a remote shell, each comman that is typed will be echoed 
+    # as the first line of the response (at least Bash does this).
+    # To prevent the echo, something like "stty -echo" needs to be
+    # sent to the remote system.  Also, it would seem that things like
+    # arrows and screen size don't work.
+    #
+    def interact
+      done = false
+      while (! done)
+        avail = IO.select([@read_fh, $stdin])
+        avail[0].each do |fh|
+          if (fh == $stdin)
+            if ($stdin.eof?)
+              done = true
+            else
+              c = $stdin.read_nonblock(1)
+              @write_fh.write(c)
+              @write_fh.flush
+            end
+          elsif (fh == @read_fh)
+            if (@read_fh.eof?)
+              done = true
+            else
+              $stdout.write(@read_fh.read_nonblock(1024))
+              $stdout.flush
+            end
+          end
+        end
+      end
     end
 
     private
