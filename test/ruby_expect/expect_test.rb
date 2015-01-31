@@ -16,6 +16,7 @@
 
 require 'minitest_helper'
 require 'socket'
+require 'stringio'
 require 'tempfile'
 
 #####
@@ -24,11 +25,12 @@ require 'tempfile'
 class ExpectTest < MiniTest::Test
   describe 'basic behavior' do
     before do
-      (s1, s2) = UNIXSocket.socketpair
-      @exp = RubyExpect::Expect.new(s1)
-      s2 << "line1\n"
-      s2 << "line2\n"
-      s2 << "line3\n"
+      (@s1, @s2) = UNIXSocket.socketpair
+      @exp = RubyExpect::Expect.new(@s1)
+      @s2 << "line1\n"
+      @s2 << "line2\n"
+      @s2 << "line3\n"
+      @s2.flush
     end
 
     it 'should return when the expected strings have been encountered in the stream' do
@@ -62,6 +64,30 @@ class ExpectTest < MiniTest::Test
     it 'returns nil if it times out while expecting a pattern' do
       @exp.timeout = 1
       @exp.expect('foobar').must_equal(nil)
+    end
+
+    it 'provides the ability for the user to directly interact with the IO stream' do
+      @exp.expect("line3\n")
+      (old_stdin, old_stdout) = [$stdin, $stdout]
+      (stdio1, stdio2) = UNIXSocket.socketpair
+      $stdin = stdio2
+      $stdout = stdio2
+
+      thread = Thread.new do
+        @exp.interact
+      end
+      
+      stdio1 << "First Line\n"
+      stdio1.flush
+
+      @s2.gets.must_equal "First Line\n"
+      @s2 << "First Response\n"
+      @s2.flush
+      stdio1.gets.must_equal("First Response\n")
+      @s2.close
+
+      $stdin = old_stdin
+      $stdout = old_stdout
     end
   end
 
