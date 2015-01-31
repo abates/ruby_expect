@@ -17,6 +17,7 @@
 require 'thread'
 require 'ruby_expect/procedure'
 require 'pty'
+require 'io/console'
 
 #####
 #
@@ -274,6 +275,40 @@ module RubyExpect
         return $?
       end
       return true
+    end
+
+    def interact
+      done = false
+      line = ""
+      filter = ""
+      while (! done)
+        avail = IO.select([@read_fh, STDIN])
+        avail[0].each do |fh|
+          if (fh == STDIN)
+            if (STDIN.eof?)
+              done = true
+            else
+              c = STDIN.read_nonblock(1)
+              if (c.ord == 12)
+                filter = line
+                line = ""
+              else
+                line += c
+              end
+
+              @write_fh.write(c)
+              @write_fh.flush
+            end
+          elsif (fh == @read_fh)
+            if (@read_fh.eof?)
+              done = true
+            else
+              STDOUT.write(@read_fh.read_nonblock(1024))
+              STDOUT.flush
+            end
+          end
+        end
+      end
     end
 
     private
