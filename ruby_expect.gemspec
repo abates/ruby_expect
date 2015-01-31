@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'ruby_expect'
-  s.version     = '1.5'
+  s.version     = '1.5.0'
   s.date        = '2014-10-27'
   s.summary     = 'This is a simple expect implementation that provides interactive access to IO objects'
   s.description = 'Ruby implementation for send/expect interaction'
