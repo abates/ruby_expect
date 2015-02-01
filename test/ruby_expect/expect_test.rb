@@ -73,10 +73,10 @@ class ExpectTest < MiniTest::Test
       $stdin = stdio2
       $stdout = stdio2
 
-      thread = Thread.new do
+      Thread.new do
         @exp.interact
       end
-      
+
       stdio1 << "First Line\n"
       stdio1.flush
 
