@@ -17,6 +17,7 @@
 require 'thread'
 require 'ruby_expect/procedure'
 require 'pty'
+require 'io/console'
 
 #####
 #
@@ -276,7 +277,46 @@ module RubyExpect
       return true
     end
 
+    ###
+    # Provides the ability to hand control back to the user and
+    # allow them to interact with the spawned process.
+    def interact
+      if ($stdin.tty?)
+        $stdin.raw do |stdin|
+          interact_loop(stdin)
+        end
+      else
+        interact_loop($stdin)
+      end
+    end
+
     private
+      def interact_loop stdin
+        done = false
+        while (! done)
+          avail = IO.select([@read_fh, stdin])
+          avail[0].each do |fh|
+            if (fh == stdin)
+              if (stdin.eof?)
+                done = true
+              else
+                c = stdin.read_nonblock(1)
+                $stdout.flush
+                @write_fh.write(c)
+                @write_fh.flush
+              end
+            elsif (fh == @read_fh)
+              if (@read_fh.eof?)
+                done = true
+              else
+                $stdout.write(@read_fh.read_nonblock(1024))
+                $stdout.flush
+              end
+            end
+          end
+        end
+      end
+
       def read_proc
         begin
           ready = IO.select([@read_fh], nil, nil, 1)
