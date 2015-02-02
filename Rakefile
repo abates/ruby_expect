@@ -1,8 +1,6 @@
 require 'rake/testtask'
-require 'rubygems/tasks'
-
-
-Gem::Tasks.new
+require 'bundler'
+Bundler::GemHelper.install_tasks
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
