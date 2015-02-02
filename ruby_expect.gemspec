@@ -9,5 +9,5 @@ Gem::Specification.new do |s|
   s.files       = `git ls-files lib`.split("\n")
   s.homepage    = 'https://github.com/abates/ruby_expect'
 
-  s.add_development_dependency 'minitest'
+  s.add_development_dependency 'minitest', '~> 5.3'
 end
