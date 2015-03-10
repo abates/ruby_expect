@@ -110,3 +110,43 @@ puts "Ended expect script."
 ```
 
 
+### SSH to a host and interact
+This example will spawn ssh and login to the host.  Once logged in, the interact
+method is called which returns control to the user and allows them to interact
+directly with the remote system
+
+```ruby
+#!/usr/bin/ruby
+
+require 'ruby_expect'
+
+username = 'username'
+password = 'password'
+hostname = 'hostname'
+
+exp = RubyExpect::Expect.spawn("/usr/bin/ssh #{username}@#{hostname}")
+exp.procedure do
+  retval = 0
+  while (retval != 2)
+    retval = any do
+      # Accept the key if it isn't already known
+      expect /Are you sure you want to continue connecting \(yes\/no\)\?/ do
+        send 'yes'
+      end
+
+      # Send the password at the prompt
+      expect /password:\s*$/ do
+        send password
+      end
+
+      # Expect the shell prompt
+      expect /\$\s*$/ do
+        send ""
+      end
+    end
+  end
+end
+
+# Pass control back to the user
+exp.interact
+```
