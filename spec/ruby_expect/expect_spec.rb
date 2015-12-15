@@ -22,7 +22,6 @@ require 'tempfile'
 describe RubyExpect::Expect do
   before :each do
     (@s1, @s2) = UNIXSocket.socketpair
-    @exp = RubyExpect::Expect.new(@s1)
     @s2 << "line1\n"
     @s2 << "line2\n"
     @s2 << "line3\n"
@@ -30,27 +29,32 @@ describe RubyExpect::Expect do
   end
 
   it 'should return when the expected strings have been encountered in the stream' do
-    expect(@exp.expect("line2\n")).to eq(0)
+    exp = RubyExpect::Expect.new(@s1)
+    expect(exp.expect("line2\n")).to eq(0)
   end
 
   it 'provides access to the data before the expected string' do
-    @exp.expect("line2\n")
-    expect(@exp.before).to eq("line1\n")
+    exp = RubyExpect::Expect.new(@s1)
+    exp.expect("line2\n")
+    expect(exp.before).to eq("line1\n")
   end
   
   it 'provides access to the matched string' do
-    @exp.expect("line2\n")
-    expect(@exp.match).to eq("line2\n")
+    exp = RubyExpect::Expect.new(@s1)
+    exp.expect("line2\n")
+    expect(exp.match).to eq("line2\n")
   end
 
   it 'returns the index of the first matching pattern when multiple patterns are given' do
-    expect(@exp.expect("line2\n", "line3\n")).to eq(0)
-    expect(@exp.expect("line2\n", "line3\n")).to eq(1)
+    exp = RubyExpect::Expect.new(@s1)
+    expect(exp.expect("line2\n", "line3\n")).to eq(0)
+    expect(exp.expect("line2\n", "line3\n")).to eq(1)
   end
 
   it 'calls the block given when an expected pattern is matched' do
+    exp = RubyExpect::Expect.new(@s1)
     proc_called = false
-    @exp.expect("line2\n") do
+    exp.expect("line2\n") do
       proc_called = true
     end
 
@@ -58,19 +62,21 @@ describe RubyExpect::Expect do
   end
 
   it 'returns nil if it times out while expecting a pattern' do
-    @exp.timeout = 1
-    expect(@exp.expect('foobar')).to eq(nil)
+    exp = RubyExpect::Expect.new(@s1)
+    exp.timeout = 1
+    expect(exp.expect('foobar')).to eq(nil)
   end
 
   it 'provides the ability for the user to directly interact with the IO stream' do
-    @exp.expect("line3\n")
+    exp = RubyExpect::Expect.new(@s1)
+    exp.expect("line3\n")
     (old_stdin, old_stdout) = [$stdin, $stdout]
     (stdio1, stdio2) = UNIXSocket.socketpair
     $stdin = stdio2
     $stdout = stdio2
 
     Thread.new do
-      @exp.interact
+      exp.interact
     end
 
     stdio1 << "First Line\n"
@@ -87,6 +93,7 @@ describe RubyExpect::Expect do
   end
 
   it 'will write data out to the file handle when calling the send method' do
+    exp = RubyExpect::Expect.new(@s1)
     (s1, s2) = UNIXSocket.socketpair
     exp = RubyExpect::Expect.new(s1)
     exp.send("a line of text")
@@ -151,10 +158,19 @@ describe RubyExpect::Expect do
   end
 
   it 'should raise an error if expect is called after the read handle is closed' do
+    exp = RubyExpect::Expect.new(@s1)
     @s1.close
     expect {
-      @exp.expect("line2\n")
+      exp.expect("line2\n")
     }.to raise_error(RubyExpect::ClosedError)
+  end
+  
+  it 'should use an optional logger to receive data sent and received on the IO filehandle' do
+    logger = double
+    allow(logger).to receive(:debug?).and_return(true)
+    expect(logger).to receive(:debug).with("line1\nline2\nline3\n")
+    exp = RubyExpect::Expect.new(@s1, logger: logger)
+    exp.expect("line3")
   end
 end
 
