@@ -237,7 +237,7 @@ module RubyExpect
       @before = ''
       matched_index = nil
       while (@end_time == 0 || Time.now < @end_time)
-        return nil if (@read_fh.closed?)
+        raise ClosedError.new("Read filehandle is closed") if (@read_fh.closed?)
         break unless (read_proc)
         @last_match = nil
         patterns.each_index do |i|

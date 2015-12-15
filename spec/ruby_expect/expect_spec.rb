@@ -149,5 +149,12 @@ describe RubyExpect::Expect do
     exp = RubyExpect::Expect.spawn('ls foo')
     expect(exp.soft_close.exitstatus).to eq(1)
   end
+
+  it 'should raise an error if expect is called after the read handle is closed' do
+    @s1.close
+    expect {
+      @exp.expect("line2\n")
+    }.to raise_error(RubyExpect::ClosedError)
+  end
 end
 

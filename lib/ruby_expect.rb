@@ -15,3 +15,4 @@
 #
 require "ruby_expect/version"
 require 'ruby_expect/expect'
+require 'ruby_expect/errors'
