@@ -13,5 +13,12 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 #
-require "ruby_expect/version"
-require 'ruby_expect/expect'
+
+require 'spec_helper'
+
+describe RubyExpect do
+  it 'has a version number' do
+    expect(RubyExpect::VERSION).not_to be nil
+  end
+end
+

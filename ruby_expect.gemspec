@@ -1,30 +1,24 @@
-# -*- encoding: utf-8 -*-
-# stub: ruby_expect 1.6.0 ruby lib
+# coding: utf-8
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'ruby_expect/version'
 
-Gem::Specification.new do |s|
-  s.name = "ruby_expect"
-  s.version = "1.6.0"
+Gem::Specification.new do |spec|
+  spec.name          = "ruby_expect"
+  spec.version       = RubyExpect::VERSION
+  spec.authors       = ["Andrew Bates"]
+  spec.email         = ["abates@omeganetserv.com"]
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.require_paths = ["lib"]
-  s.authors = ["Andrew Bates"]
-  s.date = "2014-10-27"
-  s.description = "Ruby implementation for send/expect interaction"
-  s.email = "abates@omeganetserv.com"
-  s.files = ["lib/ruby_expect.rb", "lib/ruby_expect/expect.rb", "lib/ruby_expect/procedure.rb"]
-  s.homepage = "https://github.com/abates/ruby_expect"
-  s.rubygems_version = "2.2.2"
-  s.summary = "This is a simple expect implementation that provides interactive access to IO objects"
+  spec.summary = %q{This is a simple expect implementation that provides interactive access to IO objects}
+  spec.description = %q{Ruby implementation for send/expect interaction}
+  spec.homepage = "https://github.com/abates/ruby_expect"
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 4
+  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.bindir        = "exe"
+  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.require_paths = ["lib"]
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<minitest>, ["~> 5.3"])
-    else
-      s.add_dependency(%q<minitest>, ["~> 5.3"])
-    end
-  else
-    s.add_dependency(%q<minitest>, ["~> 5.3"])
-  end
+  spec.add_development_dependency "bundler", "~> 1.10"
+  spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_development_dependency "rspec"
 end
