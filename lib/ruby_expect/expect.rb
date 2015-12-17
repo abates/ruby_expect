@@ -257,6 +257,7 @@ module RubyExpect
     #    end 
     #
     def expect *patterns, &block
+      @logger.debug("Expecting #{patterns.inspect}") if @logger.debug?
       patterns = pattern_escape(*patterns)
       @end_time = 0
       if (@timeout != 0)
@@ -271,6 +272,7 @@ module RubyExpect
         @last_match = nil
         patterns.each_index do |i|
           if (match = patterns[i].match(@buffer))
+            @logger.debug("Matched #{match}") if @logger.debug?
             @last_match = match
             @before = @buffer.slice!(0...match.begin(0))
             @match = @buffer.slice!(0...match.to_s.length)
@@ -285,6 +287,7 @@ module RubyExpect
           return matched_index
         end
       end
+      @logger.debug("Timeout")
       return nil
     end
 
@@ -356,7 +359,7 @@ module RubyExpect
             else
               input = @read_fh.readpartial(4096)
               @buffer << input
-              @logger.debug(input) if (@logger.debug?)
+              @logger.info(input) if (@logger.info?)
             end
           end
         rescue EOFError => e
