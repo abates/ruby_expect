@@ -18,6 +18,7 @@ require 'thread'
 require 'ruby_expect/procedure'
 require 'pty'
 require 'io/console'
+require 'logger'
 
 #####
 #
@@ -42,8 +43,9 @@ module RubyExpect
     # know what you are doing!
     attr_reader :buffer
 
-    # Set debug in order to see the output being read from the spawned process
-    attr_accessor :debug
+    # Any supplied logger will be used both for errors and warnings as well
+    # as debug information (I/O when sending and expecting)
+    attr_accessor :logger
 
     #####
     # Create a new Expect object for the given IO object
@@ -96,6 +98,12 @@ module RubyExpect
 
       @child_pid = options[:child_pid]
       @debug = options[:debug] || false
+      @logger = options[:logger] 
+      if @logger.nil?
+        @logger = Logger.new(STDERR)
+        @logger.level = Logger::FATAL
+      end
+
       @buffer = ''
       @before = ''
       @match = ''
@@ -140,6 +148,27 @@ module RubyExpect
        client = UNIXSocket.new(socket)
       end
       return RubyExpect::Expect.new(client, options, &block)
+    end
+
+    #####
+    # Set debug in order to see the output being read from the spawned process
+    def debug= debug
+      warn "`debug` is deprecated.  Use a logger instead"
+      if debug
+        @logger.level = Logger::DEBUG
+      else
+        @logger.level = -1
+      end
+    end
+
+    def debug
+      warn "`debug` is deprecated.  Use a logger instead"
+      @logger.debug?
+    end
+
+    def debug?
+      warn "`debug` is deprecated.  Use a logger instead"
+      @logger.debug?
     end
 
     #####
@@ -228,6 +257,7 @@ module RubyExpect
     #    end 
     #
     def expect *patterns, &block
+      @logger.debug("Expecting #{patterns.inspect}") if @logger.debug?
       patterns = pattern_escape(*patterns)
       @end_time = 0
       if (@timeout != 0)
@@ -237,11 +267,12 @@ module RubyExpect
       @before = ''
       matched_index = nil
       while (@end_time == 0 || Time.now < @end_time)
-        return nil if (@read_fh.closed?)
+        raise ClosedError.new("Read filehandle is closed") if (@read_fh.closed?)
         break unless (read_proc)
         @last_match = nil
         patterns.each_index do |i|
           if (match = patterns[i].match(@buffer))
+            @logger.debug("Matched #{match}") if @logger.debug?
             @last_match = match
             @before = @buffer.slice!(0...match.begin(0))
             @match = @buffer.slice!(0...match.to_s.length)
@@ -256,6 +287,7 @@ module RubyExpect
           return matched_index
         end
       end
+      @logger.debug("Timeout")
       return nil
     end
 
@@ -327,10 +359,7 @@ module RubyExpect
             else
               input = @read_fh.readpartial(4096)
               @buffer << input
-              if (@debug)
-                STDERR.print input
-                STDERR.flush
-              end
+              @logger.info(input) if (@logger.info?)
             end
           end
         rescue EOFError => e
@@ -339,9 +368,9 @@ module RubyExpect
           return false
         rescue Exception => e
           unless (e.to_s == 'stream closed')
-            STDERR.puts "Exception in read_loop:"
-            STDERR.puts "#{e}"
-            STDERR.puts "\t#{e.backtrace.join("\n\t")}"
+            @logger.error("Exception in read_loop:")
+            @logger.error("#{e}")
+            @logger.error("\t#{e.backtrace.join("\n\t")}")
           end
           @read_fh.close
           return false
