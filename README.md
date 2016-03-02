@@ -5,8 +5,7 @@ Introduction
 ------------
 
 This is a simple expect API written in pure ruby. Part of this library includes a simple procedure DSL
-for creating sequences of expect/send behavior.  For more information on the motivation and design of 
-this gem, please see: http://www.andrewbates.co/ruby-expect/
+for creating sequences of expect/send behavior. 
 
 Examples
 --------
