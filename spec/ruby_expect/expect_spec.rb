@@ -168,9 +168,12 @@ describe RubyExpect::Expect do
   it 'should use an optional logger to receive data sent and received on the IO filehandle' do
     logger = double
     allow(logger).to receive(:debug?).and_return(true)
-    expect(logger).to receive(:debug).with("line1\nline2\nline3\n")
+    allow(logger).to receive(:info?).and_return(true)
+    expect(logger).to receive(:debug).with("Expecting [\"line1\"]")
+    expect(logger).to receive(:info).with("line1\nline2\nline3\n")
+    expect(logger).to receive(:debug).with("Matched line1")
     exp = RubyExpect::Expect.new(@s1, logger: logger)
-    exp.expect("line3")
+    exp.expect("line1")
   end
 end
 

@@ -1,9 +1,12 @@
 # -*- encoding: utf-8 -*-
-# stub: ruby_expect 1.7.1 ruby lib
+# stub: ruby_expect 1.7.2 ruby lib
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "ruby_expect"
 
 Gem::Specification.new do |s|
   s.name = "ruby_expect"
-  s.version = "1.7.1"
+  s.version = RubyExpect::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
