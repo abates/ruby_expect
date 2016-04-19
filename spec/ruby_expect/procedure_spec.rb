@@ -54,7 +54,7 @@ describe RubyExpect::Procedure do
     match2 = false
     match3 = false
     match4 = false
-
+    this = self
     @exp.procedure do
       any do
         expect /line2/ do
@@ -65,7 +65,7 @@ describe RubyExpect::Procedure do
         end
       end
 
-      any do
+      retval = any do
         expect /line33/ do
           match3 = true
         end
@@ -73,6 +73,7 @@ describe RubyExpect::Procedure do
           match4 = true
         end
       end
+      this.expect(retval).to this.be(1)
     end
 
     expect(match1).to be(true)
