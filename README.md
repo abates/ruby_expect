@@ -1,7 +1,7 @@
 RubyExpect
 ==========
 [![Gem Version](https://badge.fury.io/rb/ruby_expect.svg)](https://badge.fury.io/rb/ruby_expect)
-
+[![(Build Status)](https://travis-ci.org/abates/ruby_expect.svg?branch=develop)][https://travis-ci.org/abates/ruby_expect.svg?branch=develop]
 Introduction
 ------------
 
