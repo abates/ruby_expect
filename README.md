@@ -1,5 +1,6 @@
 RubyExpect
 ==========
+[![Gem Version](https://badge.fury.io/rb/ruby_expect.svg)](https://badge.fury.io/rb/ruby_expect)
 
 Introduction
 ------------
