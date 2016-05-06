@@ -1,12 +1,9 @@
 # -*- encoding: utf-8 -*-
-# stub: ruby_expect 1.7.2 ruby lib
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "ruby_expect"
+# stub: ruby_expect 1.7.3 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "ruby_expect"
-  s.version = RubyExpect::VERSION
+  s.version = "1.7.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
@@ -25,18 +22,18 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<bundler>, ["~> 1.10"])
-      s.add_development_dependency(%q<rake>, ["~> 10.0"])
+      s.add_development_dependency(%q<rake>, ["~> 11.0"])
       s.add_development_dependency(%q<rspec>, [">= 0"])
       s.add_development_dependency(%q<simplecov>, [">= 0"])
     else
       s.add_dependency(%q<bundler>, ["~> 1.10"])
-      s.add_dependency(%q<rake>, ["~> 10.0"])
+      s.add_dependency(%q<rake>, ["~> 11.0"])
       s.add_dependency(%q<rspec>, [">= 0"])
       s.add_dependency(%q<simplecov>, [">= 0"])
     end
   else
     s.add_dependency(%q<bundler>, ["~> 1.10"])
-    s.add_dependency(%q<rake>, ["~> 10.0"])
+    s.add_dependency(%q<rake>, ["~> 11.0"])
     s.add_dependency(%q<rspec>, [">= 0"])
     s.add_dependency(%q<simplecov>, [">= 0"])
   end

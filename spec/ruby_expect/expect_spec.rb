@@ -154,7 +154,7 @@ describe RubyExpect::Expect do
 
   it 'should return the spawned process status after closing' do
     exp = RubyExpect::Expect.spawn('ls foo')
-    expect(exp.soft_close.exitstatus).to eq(1)
+    expect(exp.soft_close.exitstatus).to_not eq(0)
   end
 
   it 'should raise an error if expect is called after the read handle is closed' do
