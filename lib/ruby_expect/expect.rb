@@ -105,6 +105,7 @@ module RubyExpect
       end
 
       @buffer = ''
+      @log_buffer = ''
       @before = ''
       @match = ''
       @timeout = 0
@@ -257,7 +258,7 @@ module RubyExpect
     #    end 
     #
     def expect *patterns, &block
-      @logger.debug("Expecting #{patterns.inspect}") if @logger.debug?
+      @logger.debug("Expecting: #{patterns.inspect}") if @logger.debug?
       patterns = pattern_escape(*patterns)
       @end_time = 0
       if (@timeout != 0)
@@ -272,7 +273,8 @@ module RubyExpect
         @last_match = nil
         patterns.each_index do |i|
           if (match = patterns[i].match(@buffer))
-            @logger.debug("Matched #{match}") if @logger.debug?
+            log_buffer(true)
+            @logger.debug("  Matched: #{match}") if @logger.debug?
             @last_match = match
             @before = @buffer.slice!(0...match.begin(0))
             @match = @buffer.slice!(0...match.to_s.length)
@@ -323,6 +325,22 @@ module RubyExpect
     end
 
     private
+      def log_buffer incomplete_lines=false
+        return unless @logger.info?
+        if @log_buffer =~ /[\r\n]/
+          lines = @log_buffer.split(/[\r\n]+/, -1)
+          @log_buffer = lines.pop
+          lines.each do |line|
+            @logger.info(" Received: #{line.scan(/[[:print:]]/).join}")
+          end
+        end
+
+        if incomplete_lines and @log_buffer !~ /^\s*$/
+          @logger.info(" Received: #{@log_buffer.scan(/[[:print:]]/).join}")
+          @log_buffer = ''
+        end
+      end
+
       def interact_loop stdin
         done = false
         while (! done)
@@ -359,7 +377,10 @@ module RubyExpect
             else
               input = @read_fh.readpartial(4096)
               @buffer << input
-              @logger.info(input) if (@logger.info?)
+              if @logger.info?
+                @log_buffer << input
+                log_buffer
+              end
             end
           end
         rescue EOFError => e
