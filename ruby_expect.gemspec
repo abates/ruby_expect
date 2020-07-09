@@ -3,7 +3,7 @@
 
 Gem::Specification.new do |s|
   s.name = "ruby_expect"
-  s.version = "1.7.4"
+  s.version = "1.7.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
@@ -27,13 +27,13 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<simplecov>, [">= 0"])
     else
       s.add_dependency(%q<bundler>, ["~> 1.10"])
-      s.add_dependency(%q<rake>, ["~> 11.0"])
+      s.add_development_dependency(%q<rake>, [">= 12.3.3"])
       s.add_dependency(%q<rspec>, [">= 0"])
       s.add_dependency(%q<simplecov>, [">= 0"])
     end
   else
     s.add_dependency(%q<bundler>, ["~> 1.10"])
-    s.add_dependency(%q<rake>, ["~> 11.0"])
+    s.add_development_dependency(%q<rake>, [">= 12.3.3"])
     s.add_dependency(%q<rspec>, [">= 0"])
     s.add_dependency(%q<simplecov>, [">= 0"])
   end
