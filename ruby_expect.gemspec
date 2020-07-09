@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<bundler>, ["~> 1.10"])
-      s.add_development_dependency(%q<rake>, ["~> 11.0"])
+      s.add_development_dependency(%q<rake>, [">= 12.3.3"])
       s.add_development_dependency(%q<rspec>, [">= 0"])
       s.add_development_dependency(%q<simplecov>, [">= 0"])
     else
